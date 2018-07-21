@@ -9,5 +9,4 @@ module.exports = (endpoint) => {
     baseURL: config.api.BITTREX_API_V1_URL,
     headers: { 'apisign': apisign },
   });
-
 }

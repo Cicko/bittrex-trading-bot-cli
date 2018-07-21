@@ -1,16 +1,17 @@
 const API_KEY = '11333e3d72f648ee8e2a0f8912c87a8d';
 const API_SECRET = 'c12df78cf22044c6bb0a4ae324d14575';
 
-const getTicksEndpoint = (market, interval) => `/GetTicks?marketName=${market}&tickInterval=${interval}`;
+const getTicksEndpoint = (market, interval) => `/pub/market/GetTicks?marketName=${market}&tickInterval=${interval}`;
 
 module.exports = {
   API_KEY: API_KEY,
   API_SECRET: API_SECRET,
   BITTREX_API_V1_URL: 'https://bittrex.com/api/v1.1/',
-  BITTREX_API_V2_URL: 'https://bittrex.com/api/v2.0/pub/markets/',
+  BITTREX_API_V2_URL: 'https://bittrex.com/api/v2.0/',
 
   // Public endpoints.
   MARKET_SUMMARIES_ENDPOINT: '/GetMarketSummaries',
+  MARKETS_ENDPOINT: 'public/getmarkets',
   TICKS_ENDPOINT: getTicksEndpoint,
 
   // Private endpoints.
