@@ -6,6 +6,7 @@ module.exports = (result) => {
     let toBuy = true;
     let boughtFor = 0;
     let soldFor = 0;
+    let c = result[result.length - 1].MarketName;
 
     const STEPS = 1;
     const commision = 0.9975;
@@ -15,7 +16,7 @@ module.exports = (result) => {
         if (boughtFor === 0 && toBuy || x.H < soldFor && toBuy) {
           boughtFor = x.H;
           coins = (money / x.H) * commision;
-          if (config.generic.DEBUG_OPERATIONS && result[0].MarketName === config.generic.COIN_TO_CHECK) {
+          if (config.generic.DEBUG_OPERATIONS && c === config.generic.COIN_TO_CHECK) {
             console.log('BUY FOR ', Number(x.H));
             console.log('COINS: ', coins);
           }
@@ -26,15 +27,15 @@ module.exports = (result) => {
           soldFor = x.L;
 
           money = coins * x.L * commision;
-          if (config.generic.DEBUG_OPERATIONS && result[0].MarketName === config.generic.COIN_TO_CHECK) {
+          if (config.generic.DEBUG_OPERATIONS && c === config.generic.COIN_TO_CHECK) {
             console.log('SELL FOR ', Number(x.L));
-            console.log('MONEY: ', coins * x.L);
+            console.log('MONEY: ', money);
           }
           coins = 0;
           toBuy = true;
         }
 
-        if (config.generic.DEBUG_OPERATIONS && result[0].MarketName === config.generic.COIN_TO_CHECK) {
+        if (config.generic.DEBUG_OPERATIONS && c === config.generic.COIN_TO_CHECK) {
           console.log('TIME CHECK ', x.T);
           console.log(i);
         }

@@ -9,7 +9,10 @@ class PublicMethods {
     return getPublicMethod(config.api.MARKET_SUMMARIES_ENDPOINT);
   }
   static getTicks(market, interval) {
-    return getPublicMethod(config.api.TICKS_ENDPOINT(market, interval), true);
+    return getPublicMethod(config.api.TICKS_ENDPOINT(market, interval), true); // version 2
+  }
+  static getTicker(market) {
+    return getPublicMethod(config.api.TICKER_ENDPOINT(market));
   }
 }
 
