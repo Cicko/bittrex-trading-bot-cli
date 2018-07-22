@@ -72,6 +72,8 @@ function checkToBuyCoin (market, tickerResult, coinPast) {
           writePrice(market, priceToSell, boughtCoins, 'BUY');
         }
       });
+    } else {
+      log(chalk.white.bgRed('Price is higher than sold so we can not buy'));
     }
   } else {
     log(chalk.bgBlue('BUY FOR FIRST TIME ' + market));
