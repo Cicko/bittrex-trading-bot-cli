@@ -98,6 +98,7 @@ function checkToSellCoin (market, tickerResult, coinPast) {
     log(chalk.white.bgGreen('Price is higher so we can sell it'));
     PrivateMethods.sellCoin(market, boughtCoins, priceToSell).then((sellResponse) => {
       log(chalk.white.bgGreen.bold(JSON.stringify(sellResponse, null, '\t')));
+      log(chalk.white.bgGreen('PROFIT ON ' + market + ' : ' + (boughtCoins * priceToSell - boughtFor * boughtCoins)));
       if (sellResponse.success) {
         writePrice(market, priceToSell, boughtCoins, 'SELL');
       }
