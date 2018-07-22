@@ -1,64 +1,109 @@
+const _ = require('lodash');
 const axios = require('axios');
+const chalk = require('chalk');
 const config = require('./config');
 const sha512 = require('js-sha512');
 const PrivateMethods = require('./src/api/PrivateMethods');
 const PublicMethods = require('./src/api/PublicMethods');
 const HistoryChecker = require('./src/bot/HistoryChecker');
-const RealTrader = require('./src/bot/RealTrader');
+const BalanceManager = require('./src/bot/BalanceManager');
+const writePrice = require('./src/PricesFileManager').writePrice;
+const readPrices = require('./src/PricesFileManager').readPrices;
+const readPrice = require('./src/PricesFileManager').readPrice;
 const getCoinPriceInBTC = require('./src/api/getCoinPriceInBTC');
 const getCoinPriceInUSD = require('./src/api/getCoinPriceInUSD');
 
 const historyChecker = new HistoryChecker;
-const trader = new RealTrader;
+const balance = new BalanceManager;
 
-trader.init()
+const log = console.log;
+
+
+balance.init()
 .then(() => {
-  // trader.showBalance();
-  trader.showBalanceInUSD();
-  /*
-  PublicMethods.getTicker('BTC-CURE').then(({result}) => {
-      const price = result.Ask;
-      console.log('boughtFor: ' + price);
-      PrivateMethods.buyCoin('BTC-CURE', 0.00054 / price, price)
-      .then(res => {
-        console.log(res);
-      })
-      .catch(e => {
-        console.log(e);
-      });
-
-    // console.log(result.Bid);
-  });
-  */
-
+  // balance.showBalance();
+  // balance.showBalanceInUSD();
+  // const boughtCoins = balance.getAllCoins();
+  const FIVE_MIN_IN_MS = 5 * 60 * 1000;
+  setInterval(tradingAlgorithm, FIVE_MIN_IN_MS);
 });
 
-// Algorithm
-// 1. Check if we have the coin.
-//  2.1 IF WE HAVE THE COIN
-//    2.2 We check if the price is higher to sell.
-//  3.1 IF WE DON'T HAVE THE COIN
-//    3.2 We just buy it.
-//
-//
-//
+function tradingAlgorithm() {
+  log(chalk.black.bgWhite('--------------- ' + new Date() + '---------------'));
+  config.generic.BEST_MARKETS.forEach((market) => {
+    PublicMethods.getTicker(market).then((result) => {
+      log('');
+      log(chalk.black.bgWhite.bold(market));
+      log(chalk.green(JSON.stringify(result, null, '\t')));
 
-// showBestMarkets();
+      const coinPast = readPrice(market);
+      const coinToCheck = market.split('BTC-')[1];
 
-function showBestMarkets() {
-  historyChecker.getBestMarkets();
+      if (coinPast && coinPast.op === 'BUY') { // We have to SELL the coin
+        log(chalk.bgGreen('Have to SELL ' + coinToCheck));
+        checkToSellCoin(market, result, coinPast);
+      } else {
+        log(chalk.bgGreen('Have to BUY ' + coinToCheck));
+        checkToBuyCoin(market, result, coinPast);
+      }
+    });
+  });
+}
+
+function checkToBuyCoin (market, tickerResult, coinPast) {
+  const priceToBuy = tickerResult.result.Ask;
+
+  log(chalk.bgBlue('Price to BUY available: ' + priceToBuy));
+
+  if (coinPast) {
+    const soldFor = coinPast.price;
+    const soldCoins = coinPast.num_coins;
+    const earntMoney = coinPast.value;
+
+    log(chalk.bgBlue('Sold ' + soldCoins + ' coins for ' + soldFor + '. VALUE: ' + soldFor * soldCoins + ' BTC'));
+
+    if (priceToBuy < soldFor) {
+      log(chalk.white.bgGreen('Price is lower so we can buy it'));
+      PrivateMethods.buyCoin(market, earntMoney / priceToBuy, priceToBuy).then((sellResponse) => {
+        log(chalk.white.bgGreen.bold(sellResponse));
+        if (sellResponse.success) {
+          writePrice(market, priceToSell, boughtCoins, 'BUY');
+        }
+      });
+    }
+  } else {
+    log(chalk.bgBlue('BUY FOR FIRST TIME ' + market));
+    const coinsToBuy = config.generic.CASH_BASE_BTC / priceToBuy;
+    PrivateMethods.buyCoin(market, coinsToBuy, priceToBuy).then((sellResponse) => {
+      log(chalk.white.bgGreen.bold(sellResponse));
+      if (sellResponse.success) {
+        writePrice(market, priceToBuy, coinsToBuy, 'BUY');
+      }
+    });
+
+  }
+}
+
+function checkToSellCoin (market, tickerResult, coinPast) {
+  const priceToSell = tickerResult.result.Bid;
+  const boughtFor = coinPast.price;
+  const boughtCoins = coinPast.num_coins;
+
+  log(chalk.bgBlue('Bought ' + boughtCoins + ' coins for ' + boughtFor + '. VALUE: ' + boughtFor * boughtCoins + ' BTC'));
+  log(chalk.bgBlue('Price to SELL available: ' + priceToSell));
+
+  if (priceToSell > boughtFor) {
+    log(chalk.white.bgGreen('Price is higher so we can sell it'));
+    PrivateMethods.sellCoin(market, boughtCoins, priceToSell).then((sellResponse) => {
+      log(chalk.white.bgGreen.bold(sellResponse));
+      if (sellResponse.success) {
+        writePrice(market, priceToSell, boughtCoins, 'SELL');
+      }
+    });
+  } else {
+    log(chalk.white.bgRed('Price is lower so we can not sell it'));
+  }
 }
 
 
-/*
-setInterval(() => {
-  // config.generic.BEST_MARKETS
-  ['BTC-CURE'].forEach((market) => {
-    PublicMethods.getTicker(market).then((result) => {
-        const price = result.Ask;
-      // PrivateMethods.buyCoin(market)
-      // console.log(result.Bid);
-    });
-  });
-}, 30000);
-*/
+// historyChecker.getBestMarkets();

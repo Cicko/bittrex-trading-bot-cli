@@ -1,9 +1,10 @@
 const _ = require('lodash');
+const chalk = require('chalk');
 const config = require('../../config');
 const PrivateMethods = require('../api/PrivateMethods');
 const getCoinPriceInUSD = require('../api/getCoinPriceInUSD');
 
-class RealTrader {
+class BalanceManager {
   init() {
     return this.checkBalance();
   }
@@ -49,8 +50,7 @@ class RealTrader {
         if (coin !== 'USDT') {
           getCoinPriceInUSD(coin).then(price => {
             const coinAmounts = this.getCoinAmount(coin);
-            console.log('---------------------------------- COIN ' + coin + '----');
-            console.log('Value in USD: ' + price * coinAmounts);
+            console.log('Coin: ' + chalk.yellow(coin + ':  ') + chalk.red(Number(price * coinAmounts).toFixed(2) + ' $'));
             total += price * coinAmounts;
             resolve();
           });
@@ -60,10 +60,10 @@ class RealTrader {
       }));
     });
     Promise.all(allPrices).then(() => {
-      console.log('------------------------------- TOTAL ');
-      console.log(total);
+      console.log(chalk.green('------------------------------- TOTAL '));
+      console.log(chalk.green(total) + '$');
     });
   }
 }
 
-module.exports = RealTrader;
+module.exports = BalanceManager;

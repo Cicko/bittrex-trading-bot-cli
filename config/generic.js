@@ -16,6 +16,7 @@ module.exports = {
 
   COIN_TO_CHECK: 'BTC-BITS',
   CASH_BASE: 4.5,
+  CASH_BASE_BTC: 0.0006,
   COINS_LIMIT: 13,
   ONLY_COIN: 'BTC',
 
@@ -34,4 +35,6 @@ module.exports = {
     'BTC-NMR',
     'BTC-GBG',
   ],
+
+  PRICES_FILE_PATH: '../data/prices.json', // related to the pricesfilemanager
 }
