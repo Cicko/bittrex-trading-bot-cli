@@ -18,35 +18,37 @@ const balance = new BalanceManager;
 
 const log = console.log;
 
-
 balance.init()
 .then(() => {
   // balance.showBalance();
   // balance.showBalanceInUSD();
   // const boughtCoins = balance.getAllCoins();
-  const FIVE_MIN_IN_MS = 5 * 60 * 1000;
-  setInterval(tradingAlgorithm, FIVE_MIN_IN_MS);
+  tradingAlgorithm();
+  setInterval(tradingAlgorithm, config.generic.BOT_INTERVAL);
 });
 
 function tradingAlgorithm() {
   log(chalk.black.bgWhite('--------------- ' + new Date() + '---------------'));
-  config.generic.BEST_MARKETS.forEach((market) => {
-    PublicMethods.getTicker(market).then((result) => {
-      log('');
-      log(chalk.black.bgWhite.bold(market));
-      log(chalk.green(JSON.stringify(result, null, '\t')));
+  balance.showBalanceInUSD();
+  config.generic.BEST_MARKETS.forEach((market, inx) => {
+    setTimeout(() => {
+      PublicMethods.getTicker(market).then((ticker) => {
+        log('');
+        log(chalk.black.bgWhite.bold(market));
+        log(chalk.green(JSON.stringify(ticker, null, '\t')));
 
-      const coinPast = readPrice(market);
-      const coinToCheck = market.split('BTC-')[1];
+        const coinPast = readPrice(market);
+        const coinToCheck = market.split('BTC-')[1];
 
-      if (coinPast && coinPast.op === 'BUY') { // We have to SELL the coin
-        log(chalk.bgGreen('Have to SELL ' + coinToCheck));
-        checkToSellCoin(market, result, coinPast);
-      } else {
-        log(chalk.bgGreen('Have to BUY ' + coinToCheck));
-        checkToBuyCoin(market, result, coinPast);
-      }
-    });
+        if (coinPast && coinPast.op === 'BUY') { // We have to SELL the coin
+          log(chalk.bgGreen('Have to SELL ' + coinToCheck));
+          checkToSellCoin(market, ticker, coinPast);
+        } else {
+          log(chalk.bgGreen('Have to BUY ' + coinToCheck));
+          checkToBuyCoin(market, ticker, coinPast);
+        }
+      });
+    }, 1000 * inx);
   });
 }
 
@@ -64,9 +66,9 @@ function checkToBuyCoin (market, tickerResult, coinPast) {
 
     if (priceToBuy < soldFor) {
       log(chalk.white.bgGreen('Price is lower so we can buy it'));
-      PrivateMethods.buyCoin(market, earntMoney / priceToBuy, priceToBuy).then((sellResponse) => {
-        log(chalk.white.bgGreen.bold(sellResponse));
-        if (sellResponse.success) {
+      PrivateMethods.buyCoin(market, earntMoney / priceToBuy, priceToBuy).then((buyResponse) => {
+        log(chalk.white.bgGreen.bold(JSON.stringify(buyResponse, null, '\t')));
+        if (buyResponse.success) {
           writePrice(market, priceToSell, boughtCoins, 'BUY');
         }
       });
@@ -74,9 +76,9 @@ function checkToBuyCoin (market, tickerResult, coinPast) {
   } else {
     log(chalk.bgBlue('BUY FOR FIRST TIME ' + market));
     const coinsToBuy = config.generic.CASH_BASE_BTC / priceToBuy;
-    PrivateMethods.buyCoin(market, coinsToBuy, priceToBuy).then((sellResponse) => {
-      log(chalk.white.bgGreen.bold(sellResponse));
-      if (sellResponse.success) {
+    PrivateMethods.buyCoin(market, coinsToBuy, priceToBuy).then((buyResponse) => {
+      log(chalk.white.bgGreen.bold(JSON.stringify(buyResponse, null, '\t')));
+      if (buyResponse.success) {
         writePrice(market, priceToBuy, coinsToBuy, 'BUY');
       }
     });
@@ -95,7 +97,7 @@ function checkToSellCoin (market, tickerResult, coinPast) {
   if (priceToSell > boughtFor) {
     log(chalk.white.bgGreen('Price is higher so we can sell it'));
     PrivateMethods.sellCoin(market, boughtCoins, priceToSell).then((sellResponse) => {
-      log(chalk.white.bgGreen.bold(sellResponse));
+      log(chalk.white.bgGreen.bold(JSON.stringify(sellResponse, null, '\t')));
       if (sellResponse.success) {
         writePrice(market, priceToSell, boughtCoins, 'SELL');
       }

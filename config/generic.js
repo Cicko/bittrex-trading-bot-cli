@@ -5,6 +5,8 @@ const MINUTE = 60 * SECOND;
 const ONE_DAY_BY_FIVE_MIN = 12 * 24;
 const ONE_DAY_BY_ONE_MIN = 60 * 24;
 
+const FIVE_MIN_IN_MS = 5 * 60 * 1000;
+
 module.exports = {
   PRICES_CHECK_INTERVALIN_MS: MINUTE,
   TICKS_INTERVAL: 'fiveMin',
@@ -29,12 +31,11 @@ module.exports = {
     'BTC-BRK',
     'BTC-TKS',
     'BTC-XMG',
-    'BTC-COVAL',
     'BTC-CURE',
     'BTC-MUSIC',
-    'BTC-NMR',
-    'BTC-GBG',
   ],
 
   PRICES_FILE_PATH: '../data/prices.json', // related to the pricesfilemanager
+
+  BOT_INTERVAL: FIVE_MIN_IN_MS,
 }
