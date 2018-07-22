@@ -96,7 +96,7 @@ function checkToSellCoin (market, tickerResult, coinPast) {
   log(chalk.bgBlue('Bought ' + boughtCoins + ' coins for ' + boughtFor + '. VALUE: ' + boughtFor * boughtCoins + ' BTC'));
   log(chalk.bgBlue('Price to SELL available: ' + priceToSell));
 
-  if (priceToSell > boughtFor) {
+  if (priceToSell > (boughtFor * 1.025)) {
     log(chalk.white.bgGreen('Price is higher so we can sell it'));
     PrivateMethods.sellCoin(market, boughtCoins, priceToSell).then((sellResponse) => {
       log(chalk.white.bgGreen.bold(JSON.stringify(sellResponse, null, '\t')));
