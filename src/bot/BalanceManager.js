@@ -29,9 +29,18 @@ class BalanceManager {
     }
   }
 
-  getCoinAmount(coin) {
+  getCoinBalance(coin) {
     if (this.balance) {
       return _.find(this.balance, (x) => coin == x.Currency).Balance;
+    } else {
+      console.log('No balance is loaded');
+    }
+  }
+  getCoinAvailabibility(coin) {
+    if (this.balance) {
+      const balance = _.find(this.balance, (x) => coin == x.Currency);
+      if (!balance) return 0;
+      return balance.Available;
     } else {
       console.log('No balance is loaded');
     }
@@ -49,7 +58,7 @@ class BalanceManager {
       allPrices.push(new Promise((resolve, reject) => {
         if (coin !== 'USDT') {
           getCoinPriceInUSD(coin).then(price => {
-            const coinAmounts = this.getCoinAmount(coin);
+            const coinAmounts = this.getCoinBalance(coin);
             console.log('Coin: ' + chalk.yellow(coin + ':  ') + chalk.red(Number(price * coinAmounts).toFixed(2) + ' $'));
             total += price * coinAmounts;
             resolve();

@@ -21,7 +21,7 @@ const log = console.log;
 balance.init()
 .then(() => {
   // balance.showBalance();
-  // balance.showBalanceInUSD();
+  balance.showBalanceInUSD();
   // const boughtCoins = balance.getAllCoins();
   tradingAlgorithm();
   setInterval(tradingAlgorithm, config.generic.BOT_INTERVAL);
@@ -39,11 +39,12 @@ function tradingAlgorithm() {
 
         const coinPast = readPrice(market);
         const coinToCheck = market.split('BTC-')[1];
+        const availability = balance.getCoinAvailabibility(coinToCheck);
 
-        if (coinPast && coinPast.op === 'BUY') { // We have to SELL the coin
+        if (availability > 0 && coinPast) { // We have to SELL the coin
           log(chalk.bgGreen('Have to SELL ' + coinToCheck));
           checkToSellCoin(market, ticker, coinPast);
-        } else {
+        } else if (availability === 0 || !availability) {
           log(chalk.bgGreen('Have to BUY ' + coinToCheck));
           checkToBuyCoin(market, ticker, coinPast);
         }
@@ -69,7 +70,7 @@ function checkToBuyCoin (market, tickerResult, coinPast) {
       PrivateMethods.buyCoin(market, earntMoney / priceToBuy, priceToBuy).then((buyResponse) => {
         log(chalk.white.bgGreen.bold(JSON.stringify(buyResponse, null, '\t')));
         if (buyResponse.success) {
-          writePrice(market, priceToSell, boughtCoins, 'BUY');
+          writePrice(market, priceToBuy, boughtCoins, 'BUY');
         }
       });
     } else {
@@ -92,6 +93,7 @@ function checkToSellCoin (market, tickerResult, coinPast) {
   const priceToSell = tickerResult.result.Bid;
   const boughtFor = coinPast.price;
   const boughtCoins = coinPast.num_coins;
+
 
   log(chalk.bgBlue('Bought ' + boughtCoins + ' coins for ' + boughtFor + '. VALUE: ' + boughtFor * boughtCoins + ' BTC'));
   log(chalk.bgBlue('Price to SELL available: ' + priceToSell));
